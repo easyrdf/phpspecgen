@@ -19,7 +19,7 @@
                 if ($value instanceof Phpspecgen_Term) {
                     array_push($items, $value->termLink());
                 } else if ($value instanceof EasyRdf_Resource) {
-                    array_push($items, $value->htmlLink());
+                    array_push($items, $value->htmlLink($value->shorten()));
                 } else {
                     array_push($items, strval($value));
                 }
@@ -30,10 +30,16 @@
 
     class Phpspecgen_Class extends Phpspecgen_Term
     {
+        public function termType() {
+            return 'Class';
+        }
     }
 
     class Phpspecgen_Property extends Phpspecgen_Term
     {
+        public function termType() {
+            return 'Property';
+        }
     }
 
     class Phpspecgen_Vocab extends EasyRdf_Resource
@@ -102,12 +108,13 @@
             $html .= "<table>\n";
             $html .= "<tr><th>Term Name</th><th>Type</th><th>Definition</th></tr>\n";
             foreach($this->all("^rdfs:isDefinedBy") as $term) {
-                # FIXME: check that it really is a Term
-                $html .= "<tr>";
-                $html .= "<td>".$term->termLink()."</td>";
-                $html .= "<td>".$term->get('rdf:type')->localName()."</td>";
-                $html .= "<td>".$term->getLiteral(array('rdfs:comment', 'rdfs:label'))."</td>";
-                $html .= "</tr>\n";
+                if ($term instanceof Phpspecgen_Term) {
+                    $html .= "<tr>";
+                    $html .= "<td>".$term->termLink()."</td>";
+                    $html .= "<td>".$term->termType()."</td>";
+                    $html .= "<td>".$term->getLiteral(array('rdfs:comment', 'rdfs:label'))."</td>";
+                    $html .= "</tr>\n";
+                }
             }
             $html .= "</table>\n";
             return $html;
