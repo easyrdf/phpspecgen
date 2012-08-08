@@ -173,7 +173,7 @@
 
 <?php
 
-    if (isset($_REQUEST['uri'])) {
+    if (!empty($_REQUEST['uri'])) {
 
       // Parse the document
       $graph = new EasyRdf_Graph($_REQUEST['uri']);
@@ -197,6 +197,7 @@
     } else {
         $examples = array(
             'FOAF' => 'http://xmlns.com/foaf/spec/',
+            'DOAP' => 'http://usefulinc.com/ns/doap#',
             'Ordered List Ontology' => 'http://purl.org/ontology/olo/core#',
             'Whisky Vocabulary' => 'http://vocab.org/whisky/terms.rdf',
             'Sport Ontology' => 'http://www.bbc.co.uk/ontologies/sport/2011-02-17.rdf',
@@ -205,6 +206,11 @@
         );
 
         print "<h1>phpspecgen</h1>\n";
+        print "<form method='get' action='?'><div>";
+        print "<div><label for='uri'>URI of a vocabulary (OWL or RDFS):</label>\n";
+        print "<input type='text' id='uri' name='uri' size='40' />\n";
+        print "<input type='submit' value='Submit' />\n";
+        print "</div></form>\n";
         print "<p>Or pick an example:</p>\n";
         print "<ul>\n";
         foreach ($examples as $name => $uri) {
