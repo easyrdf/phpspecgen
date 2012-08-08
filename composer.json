@@ -11,7 +11,7 @@
     "license": "BSD-3-Clause",
     "require": {
         "njh/easyrdf": "0.7.0"
-    }
+    },
     "authors": [
         {
             "name": "Nicholas Humfrey",
