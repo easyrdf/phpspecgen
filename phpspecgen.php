@@ -196,6 +196,7 @@
         $examples = array(
             'FOAF' => 'http://xmlns.com/foaf/spec/',
             'DOAP' => 'http://usefulinc.com/ns/doap#',
+            'LODE' => 'http://linkedevents.org/ontology/',
             'Ordered List Ontology' => 'http://purl.org/ontology/olo/core#',
             'Whisky Vocabulary' => 'http://vocab.org/whisky/terms.rdf',
             'Sport Ontology' => 'http://www.bbc.co.uk/ontologies/sport/2011-02-17.rdf',
