@@ -46,24 +46,22 @@
     {
         public function htmlHeader() {
             $html = "<h1>".htmlspecialchars($this->label())."</h1>\n";
-            $html .= "<em>".htmlspecialchars($this->get(
-                array('dc:description', 'dc11:description', 'rdfs:comment')
-            ))."</em>\n";
+            $html .= "<em>".htmlspecialchars($this->get('dc:description|dc11:description|rdfs:comment'))."</em>\n";
             
             
             $html .= "<dl>\n";
             $html .= "<dt>Latest Version</dt><dd>".$this->htmlLink()."</dd>\n";
             
-            if ($this->get('dc:created')) {
-                $html .= "<dt>Created</dt><dd>".$this->get('dc:created')."</dd>\n";
+            if ($this->get('dc:created|dc11:created')) {
+                $html .= "<dt>Created</dt><dd>".$this->get('dc:created|dc11:created')."</dd>\n";
             }
             
-            if ($this->get('dc:date')) {
-                $html .= "<dt>Date</dt><dd>".$this->get('dc:date')."</dd>\n";
+            if ($this->get('dc:date|dc11:date')) {
+                $html .= "<dt>Date</dt><dd>".$this->get('dc:date|dc11:date')."</dd>\n";
             }
 
             $authors = array();
-            foreach($this->all('foaf:maker') as $author) {
+            foreach($this->all('foaf:maker|dc:creator|dc11:creator') as $author) {
                 if ($author instanceof EasyRdf_Literal) {
                     array_push($authors, strval($author));
                 } else if ($author->get('foaf:homepage')) {
@@ -112,7 +110,7 @@
                     $html .= "<tr>";
                     $html .= "<td>".$term->termLink()."</td>";
                     $html .= "<td>".$term->termType()."</td>";
-                    $html .= "<td>".$term->getLiteral(array('rdfs:comment', 'rdfs:label'))."</td>";
+                    $html .= "<td>".$term->getLiteral('rdfs:comment|rdfs:label')."</td>";
                     $html .= "</tr>\n";
                 }
             }
