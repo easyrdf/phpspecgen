@@ -9,7 +9,7 @@
             return "<a href=\"#term-$name\">$name</a>";
         }
 
-        public function propertyRow($property, $title) {
+        public function propertyRow($title, $property) {
             $values = $this->all($property);
             if (count($values) < 1)
                 return '';
@@ -25,7 +25,7 @@
                 }
             }
             return "<tr><th>$title:</th> <td>".implode(', ', $items)."</td></tr>\n";
-        }        
+        }
     }
 
     class Phpspecgen_Class extends Phpspecgen_Term
@@ -44,38 +44,44 @@
 
     class Phpspecgen_Vocab extends EasyRdf_Resource
     {
+        protected function propertyDefinition($title, $property) {
+            $values = $this->all($property);
+            if (count($values) < 1)
+                return '';
+
+            $html = array();
+            foreach($values as $value) {
+                if ($value instanceof EasyRdf_Literal) {
+                    array_push($html, htmlspecialchars($value));
+                } else if ($value->get('foaf:homepage')) {
+                    array_push($html, $value->get('foaf:homepage')->htmlLink( $value->label() ));
+                } else {
+                    if ($value->isBnode()) {
+                        array_push($html, htmlspecialchars($value->label()) );
+                    } else {
+                        array_push($html, $value->htmlLink($value->label()) );
+                    }
+                }
+            }
+
+            return "<dt>$title</dt><dd>".implode(', ', array_unique($html))."</dd>\n";
+        }
+
         public function htmlHeader() {
             $html = "<h1>".htmlspecialchars($this->label())."</h1>\n";
             $html .= "<em>".htmlspecialchars($this->get('dc:description|dc11:description|rdfs:comment'))."</em>\n";
-            
-            
+
             $html .= "<dl>\n";
             $html .= "<dt>Latest Version</dt><dd>".$this->htmlLink()."</dd>\n";
-            
-            if ($this->get('dc:created|dc11:created')) {
-                $html .= "<dt>Created</dt><dd>".$this->get('dc:created|dc11:created')."</dd>\n";
-            }
-            
-            if ($this->get('dc:date|dc11:date')) {
-                $html .= "<dt>Date</dt><dd>".$this->get('dc:date|dc11:date')."</dd>\n";
-            }
-
-            $authors = array();
-            foreach($this->all('foaf:maker|dc:creator|dc11:creator') as $author) {
-                if ($author instanceof EasyRdf_Literal) {
-                    array_push($authors, strval($author));
-                } else if ($author->get('foaf:homepage')) {
-                    array_push($authors, $author->get('foaf:homepage')->htmlLink( $author->label() ));
-                } else {
-                    array_push($authors, $author->label());
-                }
-            }
-            $html .= "<dt>Authors</dt><dd>".implode(', ', $authors)."</dd>";
-            
+            $html .= $this->propertyDefinition('Created', 'dc:created|dc11:created');
+            $html .= $this->propertyDefinition('Date', 'dc:date|dc11:date');
+            $html .= $this->propertyDefinition('Revision', 'owl:versionInfo');
+            $html .= $this->propertyDefinition('Authors', 'foaf:maker|dc:creator|dc11:creator');
+            $html .= $this->propertyDefinition('Contributors', 'dc:contributor|dc11:contributor');
             $html .= "</dl>\n";
             return $html;
         }
-    
+
         public function htmlSummaryOfTerms() {
             $html = "<h2 id=\"sec-summary\">Summary of Terms</h2>\n";
             $classCount = 0;
@@ -102,7 +108,7 @@
                 $html .= " and $properyCount properties.";
             }
             $html .= "</p>\n";
-            
+
             $html .= "<table>\n";
             $html .= "<tr><th>Term Name</th><th>Type</th><th>Definition</th></tr>\n";
             foreach($this->all("^rdfs:isDefinedBy") as $term) {
@@ -116,8 +122,8 @@
             }
             $html .= "</table>\n";
             return $html;
-        }    
-    
+        }
+
         public function htmlTerms($type, $title) {
             $html = '';
             $id = strtolower(str_replace(' ','-',$title));
@@ -125,26 +131,26 @@
             foreach($this->all("^rdfs:isDefinedBy") as $term) {
                 if (!$term instanceof $type)
                     continue;
-            
+
                 $name = htmlspecialchars($term->localName());
                 $html .= "<h3 id=\"term-$name\">$name</h3\n";
                 $html .= "<p>".htmlspecialchars($term->get('rdfs:comment'))."</p>\n";
                 $html .= "<table>\n";
                 $html .= "  <tr><th>URI:</th> <td>".$term->htmlLink()."</td></tr>\n";
-                $html .= $term->propertyRow("rdfs:label", "Label");
-                $html .= $term->propertyRow("vs:term_status", "Status");
-                $html .= $term->propertyRow("^rdfs:subClassOf", "Has Subclasses");
-                $html .= $term->propertyRow("rdfs:subClassOf", "Parent Class");
-                $html .= $term->propertyRow("^rdfs:domain", "Has Properties");
-                $html .= $term->propertyRow("rdfs:range", "Range");
-                $html .= $term->propertyRow("rdfs:domain", "Domain");
-                $html .= $term->propertyRow("rdfs:seeAlso", "See Also");
+                $html .= $term->propertyRow("Label", "rdfs:label");
+                $html .= $term->propertyRow("Status", "vs:term_status");
+                $html .= $term->propertyRow("Subclasses", "^rdfs:subClassOf");
+                $html .= $term->propertyRow("Parent Class", "rdfs:subClassOf");
+                $html .= $term->propertyRow("Properties", "^rdfs:domain");
+                $html .= $term->propertyRow("Range", "rdfs:range");
+                $html .= $term->propertyRow("Domain", "rdfs:domain");
+                $html .= $term->propertyRow("See Also", "rdfs:seeAlso");
                 $html .= "</table>\n";
                 $html .= "</div>\n";
             }
             return $html;
         }
-        
+
     }
 
     # Extra namespaces we use
@@ -176,19 +182,19 @@
       // Parse the document
       $graph = new EasyRdf_Graph($_REQUEST['uri']);
       $graph->load($_REQUEST['uri']);
-  
+
       // Get the first ontology in the document
       $vocab = $graph->get('owl:Ontology', '^rdf:type');
       if (!isset($vocab)) {
           print "<p>Error: No OWL ontologies defined at that URL.</p>\n";
       } else {
           // FIXME: register the preferredNamespacePrefix
-      
+
           print $vocab->htmlHeader();
           print $vocab->htmlSummaryOfTerms();
           print $vocab->htmlTerms('Phpspecgen_Class', 'Classes');
           print $vocab->htmlTerms('Phpspecgen_Property', 'Properties');
-    
+
           print $graph->dump();
       }
 
@@ -217,7 +223,7 @@
                   htmlspecialchars($name)."</a></li>\n";
         }
         print "</ul>\n";
-    
+
     }
 ?>
 </body>
