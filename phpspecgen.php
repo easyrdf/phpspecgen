@@ -38,6 +38,30 @@
         public function termType() {
             return 'Class';
         }
+
+        public function inheritedProperties() {
+            $properties = array();
+            foreach ($this->allParents() as $parent) {
+                foreach($parent->all('^rdfs:domain') as $property) {
+                    if ($property instanceof Phpspecgen_Term) {
+                        array_push($properties, $property->termLink());
+                    }
+                }
+            }
+            return $properties;
+        }
+
+        protected function allParents($depth=0) {
+            $parents = array();
+            foreach ($this->all('rdfs:subClassOf') as $parent) {
+                if (!$parent instanceof Phpspecgen_Class)
+                    continue;
+                array_push($parents, $parent);
+                if ($depth < 10)
+                    $parents = array_merge($parents, $parent->allParents($depth));
+            }
+            return $parents;
+        }
     }
 
     class Phpspecgen_Property extends Phpspecgen_Term
@@ -147,6 +171,12 @@
                 $html .= $term->propertyRow("Subclasses", "^rdfs:subClassOf");
                 $html .= $term->propertyRow("Parent Class", "rdfs:subClassOf");
                 $html .= $term->propertyRow("Properties", "^rdfs:domain");
+                if ($term instanceof Phpspecgen_Class) {
+                    $properties = $term->inheritedProperties();
+                    if (count($properties) > 0)
+                        $html .= "  <tr><th>Inherited Properties:</th> ".
+                                 "<td>".join(', ', $properties)."</td></tr>\n";
+                }
                 $html .= $term->propertyRow("Range", "rdfs:range");
                 $html .= $term->propertyRow("Domain", "rdfs:domain");
                 $html .= $term->propertyRow("See Also", "rdfs:seeAlso");
