@@ -9,13 +9,9 @@
             return "<a href=\"#term-$name\">$name</a>";
         }
 
-        public function propertyRow($title, $property) {
-            $values = $this->all($property);
-            if (count($values) < 1)
-                return '';
-
+        public function propertyList($property) {
             $items = array();
-            foreach ($values as $value) {
+            foreach ($this->all($property) as $value) {
                 if ($value instanceof Phpspecgen_Term) {
                     array_push($items, $value->termLink());
                 } else if ($value instanceof EasyRdf_Resource) {
@@ -24,7 +20,16 @@
                     array_push($items, strval($value));
                 }
             }
-            return "<tr><th>$title:</th> <td>".implode(', ', $items)."</td></tr>\n";
+            return $items;
+        }
+
+        public function propertyRow($title, $property) {
+            $items = $this->propertyList($property);
+            if (count($items) > 0) {
+                return "<tr><th>$title:</th> <td>".implode(', ', $items)."</td></tr>\n";
+            } else {
+                return '';
+            }
         }
     }
 
