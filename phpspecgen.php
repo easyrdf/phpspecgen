@@ -212,11 +212,18 @@
 
 <?php
 
+    $options = getopt('u:');
     if (!empty($_REQUEST['uri'])) {
+      $uri = $_REQUEST['uri'];
+    } elseif(array_key_exists('u', $options)) {
+      $uri = $options['u'];
+    }
+
+    if (!empty($uri)) {
 
       // Parse the document
-      $graph = new EasyRdf_Graph($_REQUEST['uri']);
-      $graph->load($_REQUEST['uri']);
+      $graph = new EasyRdf_Graph($uri);
+      $graph->load($uri);
 
       // Get the first ontology in the document
       $vocab = $graph->get('owl:Ontology', '^rdf:type');
