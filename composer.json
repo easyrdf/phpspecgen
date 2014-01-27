@@ -10,7 +10,7 @@
     "version": "0.1.0",
     "license": "BSD-3-Clause",
     "require": {
-        "njh/easyrdf": "0.7.0"
+        "njh/easyrdf": "0.7.*"
     },
     "authors": [
         {
